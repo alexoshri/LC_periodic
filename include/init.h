@@ -24,7 +24,7 @@ class Init
 
 		static vector<double> get_sys_sizes();
 
-		static vector< vector<int> > get_col_indices();
+		static vector< vector<double> > get_col_location();
 
 		static vector<double> get_temp_range();
 
@@ -36,8 +36,9 @@ class Init
 
 		static int get_range();
 
-		static void add_randomization(vector<Molecule> & molecules, const vector< vector<int> > & colloid_molecules,
-			const vector<int> & molecules_in_each_directions, const vector<double> & sys_sizes);
+		static vector<Molecule>& add_colloids(vector<Molecule> & molecules, vector<vector<double>> colloid_location);
+
+		static void add_randomization(vector<Molecule> & molecules, const vector<int> & molecules_in_each_directions, const vector<double> & sys_sizes);
 
     protected:
 

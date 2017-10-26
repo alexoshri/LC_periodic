@@ -64,7 +64,7 @@ void File_Writer::make_model_directory()
 	}
 }
 
-void File_Writer::write_state2xyz(const vector<Molecule> & molecules, double temperature, double potential)
+void File_Writer::write_state2xyz(const vector<Molecule> & molecules, int num_col,double temperature, double potential)
 {
 	//craeting file in format: lqs_sys_0002
 	ofstream xyz_file;
@@ -74,12 +74,8 @@ void File_Writer::write_state2xyz(const vector<Molecule> & molecules, double tem
 	file_name = m_output_dir + "//" + file_name + fn_suffix.str() + ".xyz";
 	xyz_file.open(file_name);
 
-	int num_col_mol = 0;
+	int num_col_mol = num_col;
 	int num_of_molecules = molecules.size();
-
-	for (int i = 0; i < num_of_molecules; i++)
-		if (molecules[i].m_mol_type == col)
-			num_col_mol++;
 
 	//turns out that AVIZ can parse any format, so leaving default format as is.
 	/*
@@ -98,7 +94,7 @@ void File_Writer::write_state2xyz(const vector<Molecule> & molecules, double tem
 	xyz_file << "Liquid Crystals with Colloide in temperature=" << temperature << ", and potential=" << potential << endl;
 	for (int i = 0; i < num_of_molecules; i++)
 	{
-		if (molecules[i].m_mol_type == col)
+		if (molecules[i].m_mol_type == COLLOID)
 		{
 			int lines_to_draw_x = 360 / DIF_ANGLES_COL_REPRESENTATION;
 #if	DIMENSIONS == 2

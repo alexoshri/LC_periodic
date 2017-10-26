@@ -38,16 +38,16 @@ vector<double> Init::get_sys_sizes()
 	return sys_sizes;
 }
 
-vector< vector<int> > Init::get_col_indices()
+vector< vector<double> > Init::get_col_location()
 {
-	vector< vector<int> > colloid_molecules;
+	vector< vector<double> > colloid_molecules;
 #ifndef IGNORE_COLLOIDS
 	int coll_mols[][DIMENSIONS] = COLLOID_MOLS;
 	int max_coll_mols = SIZE_OF_ARRAY(coll_mols);
 	for (int i = 0; i < max_coll_mols; i++)
 	{
-		vector<int> coll_indices(coll_mols[i], coll_mols[i] + DIMENSIONS);
-		colloid_molecules.push_back(coll_indices);
+		vector<double> coll_location(coll_mols[i], coll_mols[i] + DIMENSIONS);
+		colloid_molecules.push_back(coll_location);
 	}
 #endif // IGNORE_COLLOIDS
 	return colloid_molecules;
@@ -89,8 +89,8 @@ vector<Molecule> Init::get_molecules(const vector<int>& molecules_in_each_direct
 		for (int j = 0; j < molecules_in_each_directions[1]; j++)
 		{
 			int molecule_to_manipulate = molecules_in_each_directions[1] * i + j;
-			molecules[molecule_to_manipulate].m_location[0] = i * INIT_SPACING - 0.5;
-			molecules[molecule_to_manipulate].m_location[1] = j * INIT_SPACING - 0.5;
+			molecules[molecule_to_manipulate].m_location[0] = i * INIT_SPACING;
+			molecules[molecule_to_manipulate].m_location[1] = j * INIT_SPACING;
 			molecules[molecule_to_manipulate].m_spin[0] = initial_spin[0];
 			molecules[molecule_to_manipulate].m_spin[1] = initial_spin[1];
 		}
@@ -103,9 +103,9 @@ vector<Molecule> Init::get_molecules(const vector<int>& molecules_in_each_direct
 			for (int k = 0; k < molecules_in_each_directions[2]; k++)
 			{
 				int molecule_to_manipulate = molecules_in_each_directions[2] * molecules_in_each_directions[1] * i + molecules_in_each_directions[2] * j + k;
-				molecules[molecule_to_manipulate].m_location[0] = i * INIT_SPACING - 0.5;
-				molecules[molecule_to_manipulate].m_location[1] = j * INIT_SPACING - 0.5;
-				molecules[molecule_to_manipulate].m_location[2] = k * INIT_SPACING - 0.5;
+				molecules[molecule_to_manipulate].m_location[0] = i * INIT_SPACING;
+				molecules[molecule_to_manipulate].m_location[1] = j * INIT_SPACING;
+				molecules[molecule_to_manipulate].m_location[2] = k * INIT_SPACING;
 				molecules[molecule_to_manipulate].m_spin[0] = initial_spin[0];
 				molecules[molecule_to_manipulate].m_spin[1] = initial_spin[1];
 				molecules[molecule_to_manipulate].m_spin[2] = initial_spin[2];
@@ -116,6 +116,31 @@ vector<Molecule> Init::get_molecules(const vector<int>& molecules_in_each_direct
 	return molecules;
 }
 
+vector<Molecule>& Init::add_colloids(vector<Molecule>& molecules, vector<vector<double>> colloid_location) {
+	Molecule col_mol;
+	vector<double> loc;
+	for (vector<vector<double>>::iterator it = colloid_location.begin(); it != colloid_location.end(); it++) {
+		col_mol.m_mol_type = COLLOID;
+		loc = (*it);
+#if DIMENSIONS == 2
+		col_mol.m_location[0] = loc[0];
+		col_mol.m_location[1] = loc[1];
+		col_mol.m_spin[0] = 0;
+		col_mol.m_spin[1] = 1;
+#elif DIMENSIONS == 3
+		col_mol.m_location[0] = loc[0];
+		col_mol.m_location[1] = loc[1];
+		col_mol.m_location[2] = loc[2];
+		col_mol.m_spin[0] = 0;
+		col_mol.m_spin[1] = 0;
+		col_mol.m_spin[2] = 1;
+#endif //DIMENSIONS
+		molecules.push_back(col_mol);
+
+		return molecules;
+	}
+}
+
 BoundaryType Init::get_boundary_condition() {
 	return static_cast<BoundaryType>(BOUNDARY);
 }
@@ -124,28 +149,9 @@ int Init::get_range() {
 	return RANGE;
 }
 
-void Init::add_randomization(vector<Molecule>& molecules, const vector< vector<int> > & colloid_molecules,
-	const vector<int> & molecules_in_each_directions, const vector<double> & sys_sizes)
+void Init::add_randomization(vector<Molecule>& molecules, const vector<int> & molecules_in_each_directions, 
+	const vector<double> & sys_sizes)
 {
-
-//change the type to colloide for all the colloids molecules:
-#if DIMENSIONS == 2
-	for (unsigned int i = 0; i < colloid_molecules.size(); i++)
-	{
-		int index_to_manipulate = molecules_in_each_directions[1] * colloid_molecules[i].at(0) + colloid_molecules[i].at(1);
-		//since it's a user input we need to be sure we are not out of range, use at instead of[]
-		molecules.at(index_to_manipulate).m_mol_type = col;
-	}
-#elif DIMENSIONS == 3
-	for (unsigned int i = 0; i < colloid_molecules.size(); i++)
-	{
-		int index_to_manipulate = molecules_in_each_directions[2] * molecules_in_each_directions[1] * colloid_molecules[i].at(0)
-			+ molecules_in_each_directions[1] * colloid_molecules[i].at(1)
-			+ colloid_molecules[i].at(2);
-		molecules.at(index_to_manipulate).m_mol_type = col;
-	}
-#endif // DIMENSIONS
-
 	///initiate the random generators:
 	srand((unsigned int)time(0));
 	std::default_random_engine loc_gen((unsigned int)time(0));
@@ -157,8 +163,8 @@ void Init::add_randomization(vector<Molecule>& molecules, const vector< vector<i
 	for (unsigned int i = 0; i < molecules.size(); i++)
 	{
 #ifdef DONT_MOVE_COLS
-		if (molecules[i].m_mol_type == col)
-			continue;
+		if (molecules[i].m_mol_type == COLLOID)
+			return; //return; colloid are packed in the end of molecules vector
 #endif //DONT_MOVE_COLS
 		//change the location with std of location:
 		for (int j = 0; j < DIMENSIONS; j++)
@@ -167,7 +173,7 @@ void Init::add_randomization(vector<Molecule>& molecules, const vector< vector<i
 			do
 			{
 				suggested_init_loc = molecules[i].m_location[j] + loc_dist(loc_gen);
-			} while ((suggested_init_loc < 0) || (suggested_init_loc > sys_sizes[j]));
+			} while ((suggested_init_loc < -0.5) || (suggested_init_loc > sys_sizes[j] - 0.5));
 			molecules[i].m_location[j] = suggested_init_loc;
 		}
 

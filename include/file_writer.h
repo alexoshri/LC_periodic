@@ -40,7 +40,7 @@ class File_Writer
 		void make_model_directory();
 
 		///writing xyz file of the state of molecules (location and orientation).
-		void write_state2xyz(const vector<Molecule> & molecules, double temperature, double potential);
+		void write_state2xyz(const vector<Molecule> & molecules, int num_col,double temperature, double potential);
 
 		///writing a list of all files for Aviz
 		void write_list_file();

@@ -1,18 +1,31 @@
 #include "./../include/mol_sys.h"
 
-Mol_Sys::Mol_Sys(vector<double> & sys_sizes, vector<Molecule> & mols, vector<double> temperature_range, BoundaryType bc, int range)
-	:m_sys_sizes(sys_sizes), m_molecules(mols), m_temperature_range(temperature_range),m_bc(bc),m_range(range)
+Mol_Sys::Mol_Sys(vector<double> & sys_sizes, vector<Molecule> & mols, int num_lc, vector<double> temperature_range, BoundaryType bc, int range)
+	:m_sys_sizes(sys_sizes), m_molecules(mols), m_num_lc(num_lc), m_temperature_range(temperature_range),m_bc(bc),m_range(range)
 {
 	m_model = new Model();
 	m_grid = new Grid(sys_sizes,m_bc,m_range);
 	m_file_writer = new File_Writer();
-	for (unsigned int i = 0; i < m_molecules.size(); i++)
+	m_num_colloids = m_molecules.size() - m_num_lc;
+
+	m_potential_with_colloids.resize(m_num_lc);
+	double pot_sum;
+	for (int i = 0; i < m_num_lc; i++) {
+		pot_sum = 0;
+		for (int j = 0; j < m_num_colloids; j++) {
+			pot_sum += m_molecules[i].potential(&m_molecules[m_num_lc + j], m_model);
+		}
+		m_potential_with_colloids[i] = pot_sum;
+	}
+
+
+	for (unsigned int i = 0; i < m_num_lc; i++)
 	{
 		vector<double> pot(i); //generate a vector in size of i (0 for the first and so on).
 		m_pair_potentials.push_back(pot);
 	}
 
-	for (unsigned int i = 0; i < m_molecules.size(); i++) {
+	for (unsigned int i = 0; i < m_num_lc; i++) {
 		m_molecules[i].ID = i;
 		m_grid->RegisterMol(&m_molecules[i]);
 	}
@@ -24,7 +37,7 @@ Mol_Sys::Mol_Sys(vector<double> & sys_sizes, vector<Molecule> & mols, vector<dou
 	vector<Molecule*> nbr_vec;
 	vector<vector<int>> nbr_shift;
 	int nbr_ID;
-	for (unsigned int i = 0; i < m_molecules.size(); i++) {
+	for (unsigned int i = 0; i < m_num_lc; i++) {
 		nbr_res = m_grid->getNbr(m_molecules[i].m_location, 1);
 		nbr_vec = nbr_res.nbr_vec;
 		nbr_shift = nbr_res.shift;
@@ -47,7 +60,7 @@ Mol_Sys::Mol_Sys(vector<double> & sys_sizes, vector<Molecule> & mols, vector<dou
 
 #ifdef DEBUG
 	vector<Molecule*> nbr_ptr;
-	for (unsigned int i = 0; i < m_molecules.size(); i++) {
+	for (unsigned int i = 0; i < m_num_lc; i++) {
 		nbr_ptr = m_grid->getNbr(m_molecules[i].m_location, 0).nbr_vec;
 		cout << "I am:" << m_molecules[i].ID << endl;
 		cout << "My nbr ar:" << endl;
@@ -79,15 +92,21 @@ double Mol_Sys::get_sys_potential()
 	///update the system potential based on the pair potential of all the molecules.
 
 	/// this function is less performance sensitive so we dont mind doing things twice:
-	double potential = 0.0;
+	double potential_lc = 0.0;
+	double potential_col = 0.0;
 	vector<Molecule*> nbr_vec;
-	for (unsigned int i = 0; i < m_molecules.size(); i++)
+	for (unsigned int i = 0; i < m_num_lc; i++)
 	{
 		nbr_vec = m_grid->getNbr(m_molecules[i].m_location, 0).nbr_vec;
-		potential += get_all_pair_potential_of_index(i, nbr_vec);
+		potential_lc += get_all_pair_potential_of_index(i, nbr_vec);
+		potential_col += m_potential_with_colloids[i];
 	}
+
+	cout << "LC potential:" << (potential_lc/2) <<endl;
+	cout << "COLLOID potential:" << potential_col << endl << endl;
+
 	///since we calculated the pair potential i,j for each pair twice, once for i and once for j we need to divide by two
-	return potential / 2;
+	return (potential_lc / 2) + potential_col;
 }
 
 void Mol_Sys::start_cooling()
@@ -101,7 +120,7 @@ void Mol_Sys::start_cooling()
 
 	double sys_potential = get_sys_potential();
 	m_file_writer->make_model_directory();
-	m_file_writer->write_state2xyz(m_molecules, m_temperature_range[0], sys_potential);
+	m_file_writer->write_state2xyz(m_molecules, m_num_colloids,m_temperature_range[0], sys_potential);
 
 	/// in future will use some module how to cool the system.
 	/// currently will just perform x monte carlos for each temperature from the array.
@@ -112,7 +131,7 @@ void Mol_Sys::start_cooling()
 		/// first implement just a simple print
 		monte_carlo();
 		sys_potential = get_sys_potential();
-		m_file_writer->write_state2xyz(m_molecules, m_temperature_range[m_current_index_temp], sys_potential);
+		m_file_writer->write_state2xyz(m_molecules, m_num_colloids, m_temperature_range[m_current_index_temp], sys_potential);
 
 #ifdef SHOW_TEMP_TIMMING
 		prev = curr;
@@ -143,7 +162,7 @@ double Mol_Sys::get_all_pair_potential_of_index(unsigned int index, vector<Molec
 	return potential;
 }
 
-void Mol_Sys::update_sys(Molecule &mol_chosen, vector<Molecule*> nbr_vec, vector<double> potential)
+void Mol_Sys::update_sys(Molecule &mol_chosen, vector<Molecule*> nbr_vec, vector<double> potential, double temp_total_pot_col)
 {
 	///inputs:
 	/// Molecule mol_chosen: molecule to update.
@@ -185,6 +204,8 @@ void Mol_Sys::update_sys(Molecule &mol_chosen, vector<Molecule*> nbr_vec, vector
 
 	}
 
+	m_potential_with_colloids[mol_ID] = temp_total_pot_col;
+
 }
 
 void Mol_Sys::monte_carlo()
@@ -202,7 +223,7 @@ void Mol_Sys::monte_carlo()
 	vector<Molecule*> temp_nbr;
 	vector<vector<int>> temp_nbr_shift;
 	int grid_cell_count = 0;
-	double prob, dE, current_total_pot, suggested_location, suggested_spin, spin_norm, temp_total_pot;
+	double prob, dE,dE_lc,dE_col,current_total_pot_lc, suggested_location, suggested_spin, spin_norm, temp_total_pot_lc, temp_total_pot_col;
 	vector<double> potential;
 	Molecule mol_chosen;
 
@@ -234,7 +255,7 @@ void Mol_Sys::monte_carlo()
 		///change location around gauss dist:
 		mol_chosen = m_molecules[num_mol_chosen];
 #ifdef DONT_MOVE_COLS
-		if (mol_chosen.m_mol_type == col)
+		if (mol_chosen.m_mol_type == COLLOID)
 			continue;
 #endif // DONT_MOVE_COLS
 
@@ -264,15 +285,16 @@ void Mol_Sys::monte_carlo()
 			}
 			else if (m_bc == Periodic) {
 				suggested_location = mol_chosen.m_location[j] + loc_dist(loc_gen);
-				if ((suggested_location > m_sys_sizes[j] - 0.5) || (suggested_location < -0.5)){
-					mol_chosen.m_location[j] = Grid::mod(suggested_location + 0.5, m_sys_sizes[j]) - 0.5;
+				if ((m_sys_sizes[j] - 0.5 - suggested_location < 0.001) || (suggested_location + 0.5 < 0.001)){
+					suggested_location = Grid::mod(suggested_location + 0.5, m_sys_sizes[j]) - 0.5;
 				}
-				if (suggested_location >= m_sys_sizes[j] - 0.5) {
-					mol_chosen.m_location[j] = m_sys_sizes[j] - 0.5 - 0.0001;
+				if (m_sys_sizes[j] - 0.5 - suggested_location < 0.001) {
+					suggested_location = m_sys_sizes[j] - 0.5 - 0.001;
 				}
-				else if (suggested_location <= -0.5) {
-					mol_chosen.m_location[j] =  - 0.5 + 0.0001;
+				else if (suggested_location + 0.5 < 0.001) {
+					suggested_location =  - 0.5 + 0.001;
 				}
+				mol_chosen.m_location[j] = suggested_location;
 			}
 		}
 
@@ -290,11 +312,18 @@ void Mol_Sys::monte_carlo()
 
 		/// we now have the location vector and the spin vector suggested, now we have to calculate dE for them
 		///since all changed is this 1 molecule we will:
-		/// calculate row of for the potential done by this molecule
+		/// calculate the change in colloid potential:
+		temp_total_pot_col = 0;
+		for (int j = 0; j < m_num_colloids; j++) {
+			temp_total_pot_col += mol_chosen.potential(&m_molecules[m_num_lc + j], m_model);
+		}
+		dE_col = temp_total_pot_col - m_potential_with_colloids[num_mol_chosen];
+
+		/// calculate the change in the potential with neighboring LC molecules:
 		nbr_result = m_grid->getNbr(mol_chosen.m_location, 1);
 		temp_nbr = nbr_result.nbr_vec;
 		temp_nbr_shift = nbr_result.shift;
-		temp_total_pot = 0;
+		temp_total_pot_lc = 0;
 		grid_cell_count = 0;
 		potential.resize(0);
 		for (vector<Molecule*>::iterator it = temp_nbr.begin(); it != temp_nbr.end(); it++)
@@ -307,22 +336,26 @@ void Mol_Sys::monte_carlo()
 			}
 			if ((*it)->ID == num_mol_chosen) continue;
 			potential.push_back(mol_chosen.potential((*it), m_model, temp_nbr_shift[grid_cell_count]));
-			temp_total_pot += potential.back();
+			temp_total_pot_lc += potential.back();
 		}
 		curr_nbr = m_grid->getNbr(m_molecules[num_mol_chosen].m_location, 0).nbr_vec;
-		current_total_pot = get_all_pair_potential_of_index(num_mol_chosen, curr_nbr);
-		dE = current_total_pot - temp_total_pot;
-		if (temp_total_pot <= current_total_pot)
+		current_total_pot_lc = get_all_pair_potential_of_index(num_mol_chosen, curr_nbr);
+		dE_lc = temp_total_pot_lc - current_total_pot_lc;
+		dE = dE_lc + dE_col;
+		if (num_mol_chosen == 60) {
+			num_mol_chosen = 60;
+		}
+		if (dE < 0)
 		{
-			update_sys(mol_chosen, temp_nbr , potential);
+			update_sys(mol_chosen, temp_nbr , potential, temp_total_pot_col);
 		}
 		else
 		{
 			prob = distr_double(generator);
 
-			if (prob < exp(dE / (m_temperature_range[m_current_index_temp] * K_B)))
+			if (prob < exp(-dE / (m_temperature_range[m_current_index_temp] * K_B)))
 			{
-				update_sys(mol_chosen, temp_nbr , potential);
+				update_sys(mol_chosen, temp_nbr , potential, temp_total_pot_col);
 			}
 		}
 

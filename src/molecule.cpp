@@ -6,7 +6,7 @@ Molecule::Molecule(std::vector<double> loc, std::vector<double> spin, Mol_Type m
 
 Molecule::Molecule()
 {
-	m_mol_type = lc; //default molecule is lc
+	m_mol_type = LC; //default molecule is lc
 	m_location.resize(DIMENSIONS);
 	m_spin.resize(DIMENSIONS);
 }  

@@ -27,7 +27,7 @@ class Mol_Sys
     public:
 
         /// this is some kind of custom constructor where all the parameters are pre-defined.
-        Mol_Sys(vector<double> & sys_sizes, vector<Molecule> & mols, vector<double> temperature_range, BoundaryType bc, int range);
+        Mol_Sys(vector<double> & sys_sizes, vector<Molecule> & mols, int num_lc, vector<double> temperature_range, BoundaryType bc, int range);
 
         ///nothing has made with new, nothing to delete.
         ~Mol_Sys();
@@ -35,6 +35,8 @@ class Mol_Sys
         vector<double> m_sys_sizes; ///array in the length of dimensions which determine the x,y,(z) of the system.
 
 		vector<Molecule> m_molecules; /// ///pointer to the first molecule array.
+		int m_num_lc;
+		int m_num_colloids;
 		vector<double> m_temperature_range; ///hold the range of temperature we want to check (Starting from 0 to max_temp -1;
 		unsigned int m_current_index_temp;
 
@@ -47,6 +49,7 @@ class Mol_Sys
 		/// have all the pairs of potential for example pair_potential[0][1] has the potential between molecule 0 and 1.
 		///the last column has the sum potential of this
 		vector< vector<double> > m_pair_potentials;
+		vector<double> m_potential_with_colloids; //contain for each LC molecule, the potential of the molecule with the colloid system (i.e all the colloids) 
 
         /** example of potentials as a matrix for m_molecules.size()=4:
             0   1   2   3
@@ -73,7 +76,7 @@ class Mol_Sys
         double get_all_pair_potential_of_index(unsigned int index, vector<Molecule*> nbr_vec);
 		
 		/// in charge of updating the system.
-		void update_sys(Molecule &mol_chosen, vector<Molecule*> nbr_vec, vector<double> potential);
+		void update_sys(Molecule &mol_chosen, vector<Molecule*> nbr_vec, vector<double> potential, double colloid_potential);
 
 		///doing NUMBER_OF_STEPS times monte carlo steps
         void monte_carlo();
