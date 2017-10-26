@@ -5,16 +5,16 @@
 #define K_B 1.38066e-23
 
 	/// model defined:
-#define MODEL_NAME "7x7x7_small_col" ///the model name, this will be the folder name in the run directory
+#define MODEL_NAME "after_periodic_implmnt" ///the model name, this will be the folder name in the run directory
 
 #define DIMENSIONS 3
-#define MOLECULES_IN_EACH_DIRECTION {3,3,3} /// #moleuclues will be the product of all elements.
-#define SYSTEM_SIZES {3,3,3} /// SHOULD BE INT - grid cells are 1X1X1 cubes
+#define MOLECULES_IN_EACH_DIRECTION {7,7,7} /// #moleuclues will be the product of all elements.
+#define SYSTEM_SIZES {7,7,7} /// SHOULD BE INT - grid cells are 1X1X1 cubes
 //the location of the molecules cant exceed the size of the system.
 
 	/// colloid molecules - define all the molecules in the system
 #define COLLOID_MOLS {\
-    {1,1,1}\
+    {3,3,3}\
 }
 
 	//#define IGNORE_COLLOIDS ///this defined tell the program to ignore colloid molecules, comment in order to use colloids.
@@ -29,7 +29,7 @@
 
 #define TEMPERATURE_RANGE {3.0, 2.9,2.8,2.7,2.6, 2.5,2.4,2.3,2.2,2.1, 2.0, 1.9,1.8,1.7,1.6, 1.5,1.4,1.3,1.2,1.1, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05, 0.01,0.005, 0.001}  ///temperature range of the monte carlo
 
-#define NUMBER_OF_STEPS 500000 ///number of steps in each temperature
+#define NUMBER_OF_STEPS 1000000 ///number of steps in each temperature
 
 #define STD_LOCATION 0.1 ///the standart deviation of the location in the monte carlo
 #define STD_SPIN 0.15 ///the standart deviation of the orientation in the monte carlo
@@ -37,13 +37,13 @@
 
 	//L > D
 #define D_0 0.7 /// the small size of the liquid crystal molecule.
-#define L_0 4.5 /// the long size of the liquid crystal molecule
+#define L_0 2.5 /// the long size of the liquid crystal molecule
 
-#define D_1 4.0 /// the radius of the colloid molecule
-#define L_1 4.001 ///D_1 + very small number, just to allow the expression (L_1 - D_1) / (L_1 - D_1)
+#define D_1 5.0 /// the radius of the colloid molecule
+#define L_1 5.001 ///D_1 + very small number, just to allow the expression (L_1 - D_1) / (L_1 - D_1)
 
-#define BOUNDARY 1 // possible values {Box = 0, Periodic = 1}
-#define RANGE 1 // number of grid cells to include in every direction in potential calculation.
+#define BOUNDARY 0 // possible values {Box = 0, Periodic = 1}
+#define RANGE 2 // number of grid cells to include in every direction in potential calculation.
 				// using grid we consider only pair potential between neighbors within RANGE grid cells
 
 #define EPSILON0_0 K_B ///the epsilon0 of the LC

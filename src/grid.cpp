@@ -97,7 +97,7 @@ Grid::Nbr Grid::getNbr(vector<double> location, bool shift) {
 		high = (grid_pt[i] + grid_range);
 		if (grid_bc == Box) {
 			low = (low < 0) ? 0 : low;
-			high = (high > grid_size[i] - 1) ? grid_size[i] - 1 : high;
+			high = (high > grid_size[i] - 1) ? (grid_size[i] - 1) : high;
 		}
 		low_idx.push_back(low);
 		high_idx.push_back(high);

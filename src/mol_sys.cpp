@@ -13,13 +13,36 @@ Mol_Sys::Mol_Sys(vector<double> & sys_sizes, vector<Molecule> & mols, vector<dou
 	}
 
 	for (unsigned int i = 0; i < m_molecules.size(); i++) {
-		for (unsigned int j = 0; j < i; j++)
-			m_pair_potentials[i][j] = m_molecules[i].potential(&m_molecules[j], m_model);
-	}
-
-	for (unsigned int i = 0; i < m_molecules.size(); i++) {
 		m_molecules[i].ID = i;
 		m_grid->RegisterMol(&m_molecules[i]);
+	}
+
+	int grid_cell_count;
+	int row;
+	int col;
+	Grid::Nbr nbr_res;
+	vector<Molecule*> nbr_vec;
+	vector<vector<int>> nbr_shift;
+	int nbr_ID;
+	for (unsigned int i = 0; i < m_molecules.size(); i++) {
+		nbr_res = m_grid->getNbr(m_molecules[i].m_location, 1);
+		nbr_vec = nbr_res.nbr_vec;
+		nbr_shift = nbr_res.shift;
+		grid_cell_count = 0;
+		for (vector<Molecule*>::iterator it = nbr_vec.begin(); it != nbr_vec.end(); it++)
+		{
+			//NULL value separate between nbr's in the same grid cell
+			//untill we reach NULL all nbr's are in the same grid cell and the same shift is relavant to all.
+			if ((*it) == NULL) {
+				grid_cell_count++;
+				continue;
+			}
+			nbr_ID = (*it)->ID;
+			if (nbr_ID  == m_molecules[i].ID) continue;
+			row = (m_molecules[i].ID > nbr_ID) ? m_molecules[i].ID : nbr_ID;
+			col = (m_molecules[i].ID < nbr_ID) ? m_molecules[i].ID : nbr_ID;
+			m_pair_potentials[row][col] = m_molecules[i].potential((*it), m_model, nbr_shift[grid_cell_count]);
+		}
 	}
 
 #ifdef DEBUG
@@ -175,9 +198,10 @@ void Mol_Sys::monte_carlo()
 
 	int num_mol_chosen;
 	vector<Molecule*> curr_nbr;
+	Grid::Nbr nbr_result;
 	vector<Molecule*> temp_nbr;
 	vector<vector<int>> temp_nbr_shift;
-	int grid_cell_count;
+	int grid_cell_count = 0;
 	double prob, dE, current_total_pot, suggested_location, suggested_spin, spin_norm, temp_total_pot;
 	vector<double> potential;
 	Molecule mol_chosen;
@@ -235,12 +259,20 @@ void Mol_Sys::monte_carlo()
 
 #endif //DEBUG
 					suggested_location = mol_chosen.m_location[j] + loc_dist(loc_gen);
-				} while ((suggested_location > m_sys_sizes[j]) || (suggested_location < 0));
+				} while ((suggested_location >= m_sys_sizes[j] - 0.5) || (suggested_location <= - 0.5));
 				mol_chosen.m_location[j] = suggested_location;
 			}
 			else if (m_bc == Periodic) {
 				suggested_location = mol_chosen.m_location[j] + loc_dist(loc_gen);
-				mol_chosen.m_location[j] = Grid::mod(suggested_location, m_sys_sizes[j]);
+				if ((suggested_location > m_sys_sizes[j] - 0.5) || (suggested_location < -0.5)){
+					mol_chosen.m_location[j] = Grid::mod(suggested_location + 0.5, m_sys_sizes[j]) - 0.5;
+				}
+				if (suggested_location >= m_sys_sizes[j] - 0.5) {
+					mol_chosen.m_location[j] = m_sys_sizes[j] - 0.5 - 0.0001;
+				}
+				else if (suggested_location <= -0.5) {
+					mol_chosen.m_location[j] =  - 0.5 + 0.0001;
+				}
 			}
 		}
 
@@ -259,8 +291,9 @@ void Mol_Sys::monte_carlo()
 		/// we now have the location vector and the spin vector suggested, now we have to calculate dE for them
 		///since all changed is this 1 molecule we will:
 		/// calculate row of for the potential done by this molecule
-		temp_nbr = m_grid->getNbr(mol_chosen.m_location, 1).nbr_vec;
-		temp_nbr_shift = m_grid->getNbr(mol_chosen.m_location, 1).shift;
+		nbr_result = m_grid->getNbr(mol_chosen.m_location, 1);
+		temp_nbr = nbr_result.nbr_vec;
+		temp_nbr_shift = nbr_result.shift;
 		temp_total_pot = 0;
 		grid_cell_count = 0;
 		potential.resize(0);
