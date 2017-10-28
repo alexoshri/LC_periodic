@@ -358,8 +358,7 @@ void Mol_Sys::monte_carlo()
 	}
 }
 
-double Mol_Sys::mod(double a, int b)
+double Mol_Sys::mod(double a, double b)
 {
-	if (a == b) return 0;
-	return (a >= 0) ? fmod(a,b) : a + std::abs(b);
+	return a - b * floor(a / b);
 }

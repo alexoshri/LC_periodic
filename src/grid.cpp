@@ -146,7 +146,6 @@ vector<int> Grid::getGridPoint(vector<double> loc) {
 	int val;
 	for (int i = 0; i < loc.size();i++) {
 		val = static_cast<int>(round(loc[i]));
-		val = (val == -1) ? 0 : val;
 		grid_pt.push_back(val);
 	}
 	return grid_pt;
