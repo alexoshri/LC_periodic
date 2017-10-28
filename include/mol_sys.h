@@ -87,7 +87,7 @@ class Mol_Sys
 
     private:
 		Mol_Sys(); /// no default constructr should be in use, arguments must be provided.
-		double Mol_Sys::mod(double a, int b); //implemnting modulu operation = euclidean reminder **for double**
+		double Mol_Sys::mod(double a, double b); //implemnting modulu operation = euclidean reminder **for double**
 };
 
 #endif // MOL_SYS_H
