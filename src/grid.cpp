@@ -142,16 +142,18 @@ Grid::Nbr Grid::getNbr(vector<double> location, bool shift) {
 }
 
 vector<int> Grid::getGridPoint(vector<double> loc) {
-	for (vector<double>::iterator it = loc.begin(); it != loc.end(); it++) {
-		*it = round(*it);
+	vector<int> grid_pt;
+	int val;
+	for (int i = 0; i < loc.size();i++) {
+		val = static_cast<int>(round(loc[i]));
+		val = (val == -1) ? 0 : val;
+		grid_pt.push_back(val);
 	}
-	vector<int> grid_pt(loc.begin(), loc.end());
 	return grid_pt;
 }
 
-//implemnting modulu operation = euclidean reminder
+//implemnting modulu operation = euclidean reminder **for int**
 int Grid::mod(int a, int b)
 {
-	int r = a % b;
-	return r >= 0 ? r : r + std::abs(b);
+	return (a >= 0) ? a % b : a + std::abs(b);
 }

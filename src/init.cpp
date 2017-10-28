@@ -125,15 +125,15 @@ vector<Molecule>& Init::add_colloids(vector<Molecule>& molecules, vector<vector<
 #if DIMENSIONS == 2
 		col_mol.m_location[0] = loc[0];
 		col_mol.m_location[1] = loc[1];
-		col_mol.m_spin[0] = 0;
-		col_mol.m_spin[1] = 1;
+		col_mol.m_spin[0] = 1;
+		col_mol.m_spin[1] = 0;
 #elif DIMENSIONS == 3
 		col_mol.m_location[0] = loc[0];
 		col_mol.m_location[1] = loc[1];
 		col_mol.m_location[2] = loc[2];
-		col_mol.m_spin[0] = 0;
+		col_mol.m_spin[0] = 1;
 		col_mol.m_spin[1] = 0;
-		col_mol.m_spin[2] = 1;
+		col_mol.m_spin[2] = 0;
 #endif //DIMENSIONS
 		molecules.push_back(col_mol);
 
@@ -173,7 +173,7 @@ void Init::add_randomization(vector<Molecule>& molecules, const vector<int> & mo
 			do
 			{
 				suggested_init_loc = molecules[i].m_location[j] + loc_dist(loc_gen);
-			} while ((suggested_init_loc < -0.5) || (suggested_init_loc > sys_sizes[j] - 0.5));
+			} while ((suggested_init_loc + 0.5 < 0.0001) || (sys_sizes[j] - 0.5 - suggested_init_loc < 0.0001));
 			molecules[i].m_location[j] = suggested_init_loc;
 		}
 

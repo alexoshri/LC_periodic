@@ -7,9 +7,9 @@
 	/// model defined:
 #define MODEL_NAME "after_periodic_implmnt" ///the model name, this will be the folder name in the run directory
 
-#define DIMENSIONS 2
-#define MOLECULES_IN_EACH_DIRECTION {11,11} /// #moleuclues will be the product of all elements.
-#define SYSTEM_SIZES {11,11} /// SHOULD BE INT - grid cells are 1X1X1 cubes
+#define DIMENSIONS 3
+#define MOLECULES_IN_EACH_DIRECTION {11,11,11} /// #moleuclues will be the product of all elements.
+#define SYSTEM_SIZES {11,11,11} /// SHOULD BE INT - grid cells are 1X1X1 cubes
 //the location of the molecules cant exceed the size of the system.
 
 	/// colloid molecules location vector - define all the colloid molecules in the system
@@ -17,33 +17,41 @@
 	/// and will stand alone outside the system.
 	/// This option is used if we want to consider periodic potential of colloid and include colloid outside of the system "box".
 #define COLLOID_MOLS {\
-    {5,5}\
+    {5,5,5}/*,{16,16,16},{-6,-6,-6},
+	{ -6,-6,5 }, { -6,-6,16 }, { -6,5,-6 },{-6,5,5},
+	{ -6,5,16 }, { -6,16,-6 }, { -6,16,5 }, 
+	{ -6,16,16 }, { 5,-6,-6 }, { 5,-6,5 }, 
+	{ 5,-6,16 }, { 5,5,-6 }, { 5,5,16 }, 
+	{ 5,16,-6 }, { 5,16,5 }, { 5,16,16 }, 
+	{ 16,-6,-6 }, { 16,-6,5 }, { 16,-6,16 }, 
+	{ 16,5,-6 }, { 16,5,5 }, { 16,5,16 }, 
+	{ 16,16,-6 }, { 16,16,5 }*/ \
 }
 
 	//#define IGNORE_COLLOIDS ///this defined tell the program to ignore colloid molecules, comment in order to use colloids.
 #define DONT_MOVE_COLS //if this is defined then the simulation will not move colloids
 
 #define INIT_SPACING 1.0 ///the expected value of the inital location of the molecules
-#define INIT_SPIN {1/sqrt(2), 1/sqrt(2)} ///the expected value of the inital orientation of the molecules
+#define INIT_SPIN {1/sqrt(3), 1/sqrt(3),1/sqrt(3)} ///the expected value of the inital orientation of the molecules
 
 #define INIT_SPACING_STD 0.1 ///the standart deviation of the inital location of the location
 #define INIT_SPIN_STD 1.0 ///the standart deviation of the inital location of the spin
 	//can't be zero!
 
-#define TEMPERATURE_RANGE {3.0, 2.9,2.8,2.7,2.6, 2.5,2.4,2.3,2.2,2.1, 2.0, 1.9,1.8,1.7,1.6, 1.5,1.4,1.3,1.2,1.1, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0.05, 0.01,0.005, 0.001}  ///temperature range of the monte carlo
+#define TEMPERATURE_RANGE {3.0, 2.9,2.8,2.7,2.6, 2.5,2.4,2.3,2.2,2.1, 2.0, 1.9,1.8,1.7,1.6, 1.5,1.4,1.3,1.2,1.1, 1.0, 0.9, 0.8, 0.7, 0.6, 0.5,0.5,0.5,0.5, 0.5,0.5,0.5,0.5, 0.4,0.4,0.4,0.4,0.4, 0.4,0.4,0.4,0.4,0.4, 0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3,0.3, 0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2,0.2, 0.1,0.1,0.1,0.1,0.1, 0.1,0.1,0.1,0.1,0.1,0.09,0.09,0.09,0.09,0.09,0.08,0.08,0.08,0.08,0.08,0.07,0.07,0.07,0.07,0.07,0.06,0.06,0.06,0.06,0.06,0.05,0.05,0.05,0.05,0.05, 0.04,0.04,0.04,0.04,0.04,0.03,0.03,0.03,0.03,0.03,0.02,0.02,0.02,0.02,0.02,0.01,0.01,0.01,0.01,0.01,0.009,0.008,0.007,0.006,0.005,0.004,0.002, 0.001}  ///temperature range of the monte carlo
 
-#define NUMBER_OF_STEPS 500000 ///number of steps in each temperature
+#define NUMBER_OF_STEPS 100000 ///number of steps in each temperature
 
-#define STD_LOCATION 0.1 ///the standart deviation of the location in the monte carlo
-#define STD_SPIN 0.15 ///the standart deviation of the orientation in the monte carlo
+#define STD_LOCATION 0.2 ///the standart deviation of the location in the monte carlo
+#define STD_SPIN 0.05 ///the standart deviation of the orientation in the monte carlo
 	//can't be zero!
 
 	//L > D
 #define D_0 0.7 /// the small size of the liquid crystal molecule.
 #define L_0 2.3 /// the long size of the liquid crystal molecule
 
-#define D_1 9.0 /// the radius of the colloid molecule
-#define L_1 9.001 ///D_1 + very small number, just to allow the expression (L_1 - D_1) / (L_1 - D_1)
+#define D_1 6.0 /// the radius of the colloid molecule
+#define L_1 6.001 ///D_1 + very small number, just to allow the expression (L_1 - D_1) / (L_1 - D_1)
 
 #define BOUNDARY 1 // possible values {Box = 0, Periodic = 1}
 #define RANGE 4 // number of grid cells to include in every direction in potential calculation.

@@ -24,7 +24,6 @@ public:
 	};
 	Nbr getNbr(vector<double> location, bool shift); //if shift==1 the function calculate the shift field
 
-	static int mod(int a, int b); //TODO :move outside to an external class
 	int grid_mol_num;
 private:
 	int grid_range;
@@ -34,6 +33,7 @@ private:
 	vector<vector<vector<vector<Molecule*>>>>    grid_3D; //3D: array containing vectors of pointers, to the molecules in each grid cell  
 	
 	vector<int> getGridPoint(vector<double> loc);
+	static int mod(int a, int b); //implemnting modulu operation = euclidean reminder **for int**
 };
 
 #endif // GRID_H

@@ -284,16 +284,11 @@ void Mol_Sys::monte_carlo()
 				mol_chosen.m_location[j] = suggested_location;
 			}
 			else if (m_bc == Periodic) {
-				suggested_location = mol_chosen.m_location[j] + loc_dist(loc_gen);
-				if ((m_sys_sizes[j] - 0.5 - suggested_location < 0.001) || (suggested_location + 0.5 < 0.001)){
-					suggested_location = Grid::mod(suggested_location + 0.5, m_sys_sizes[j]) - 0.5;
-				}
-				if (m_sys_sizes[j] - 0.5 - suggested_location < 0.001) {
-					suggested_location = m_sys_sizes[j] - 0.5 - 0.001;
-				}
-				else if (suggested_location + 0.5 < 0.001) {
-					suggested_location =  - 0.5 + 0.001;
-				}
+				do
+				{
+					suggested_location = mol_chosen.m_location[j] + loc_dist(loc_gen);
+					suggested_location = mod(suggested_location + 0.5, m_sys_sizes[j]) - 0.5;
+				} while ((suggested_location + 0.5 < 0.0001) || (m_sys_sizes[j] - 0.5 - suggested_location < 0.0001));
 				mol_chosen.m_location[j] = suggested_location;
 			}
 		}
@@ -363,3 +358,8 @@ void Mol_Sys::monte_carlo()
 	}
 }
 
+double Mol_Sys::mod(double a, int b)
+{
+	if (a == b) return 0;
+	return (a >= 0) ? fmod(a,b) : a + std::abs(b);
+}
