@@ -1,6 +1,20 @@
 #include "./../include/init.h"
 
+//define a global functions to split a string (not nice but currently we dont care..)
+template<typename Out>
+void split(const std::string &s, char delim, Out result) {
+	std::stringstream ss(s);
+	std::string item;
+	while (std::getline(ss, item, delim)) {
+		*(result++) = item;
+	}
+}
 
+std::vector<std::string> split(const std::string &s, char delim) {
+	std::vector<std::string> elems;
+	split(s, delim, std::back_inserter(elems));
+	return elems;
+}
 
 Init::Init()
 {
@@ -9,8 +23,56 @@ Init::Init()
 
 Init::~Init()
 {
-    //dtor
+	//dtor
 }
+
+#ifdef SARTING_SYSTEM
+vector<Molecule> Init::get_molecules_from_file(const vector<int>& molecules_in_each_directions)
+{
+	string path_to_xyz = SARTING_SYSTEM;
+	ifstream xyz_file(path_to_xyz.c_str());
+	if (!xyz_file)
+	{
+		cout << "init file is not exist. check path: " << path_to_xyz << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	int max_mol = 1;
+	for (unsigned int i = 0; i < DIMENSIONS; i++)
+		max_mol *= molecules_in_each_directions[i];
+
+	std::vector<Molecule> molecules(max_mol); //default initialize the vectors --with lc-mols
+	int line_counter = 0;
+	std::string line;
+	while (getline(xyz_file, line))
+	{
+		//split the line by spaces and return a vector of the words:
+		char* delimeter = " ";
+		vector<string> tokens = split(line, *delimeter);
+		if (tokens.at(0) == "Sp")
+		{
+#if DIMENSIONS == 2
+			molecules.at(line_counter).m_location[0] = stod(tokens.at(1));
+			molecules.at(line_counter).m_location[1] = stod(tokens.at(2));
+
+			molecules.at(line_counter).m_spin[0] = stod(tokens.at(4));
+			molecules.at(line_counter).m_spin[1] = stod(tokens.at(5));
+
+#elif DIMENSIONS == 3
+			molecules.at(line_counter).m_location[0] = stod(tokens.at(1));
+			molecules.at(line_counter).m_location[1] = stod(tokens.at(2));
+			molecules.at(line_counter).m_location[2] = stod(tokens.at(3));
+
+			molecules.at(line_counter).m_spin[0] = stod(tokens.at(4));
+			molecules.at(line_counter).m_spin[1] = stod(tokens.at(5));
+			molecules.at(line_counter).m_spin[2] = stod(tokens.at(6));
+#endif //DIMENSIONS
+			line_counter++;
+		}
+	}
+	return molecules;
+}
+#endif //SARTING_SYSTEM
 
 vector<int> Init::get_mols_each_dir()
 {
@@ -136,9 +198,8 @@ vector<Molecule>& Init::add_colloids(vector<Molecule>& molecules, vector<vector<
 		col_mol.m_spin[2] = 0;
 #endif //DIMENSIONS
 		molecules.push_back(col_mol);
-
-		return molecules;
 	}
+	return molecules;
 }
 
 BoundaryType Init::get_boundary_condition() {
@@ -149,7 +210,7 @@ int Init::get_range() {
 	return RANGE;
 }
 
-void Init::add_randomization(vector<Molecule>& molecules, const vector<int> & molecules_in_each_directions, 
+void Init::add_randomization(vector<Molecule>& molecules, const vector<int> & molecules_in_each_directions,
 	const vector<double> & sys_sizes)
 {
 	///initiate the random generators:
@@ -191,3 +252,4 @@ void Init::add_randomization(vector<Molecule>& molecules, const vector<int> & mo
 		}
 	}
 }
+

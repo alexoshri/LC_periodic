@@ -14,7 +14,14 @@ int main(int argc, char* argv[])
 	vector<vector<double> > colloid_location = Init::get_col_location();
 	vector<double> temperature_range = Init::get_temp_range();
 	vector<double> initial_spin = Init::get_init_spin();
-	vector<Molecule> molecules = Init::get_molecules(molecules_in_each_directions, initial_spin);
+	vector<Molecule> molecules;
+#ifdef SARTING_SYSTEM
+	molecules = Init::get_molecules_from_file(molecules_in_each_directions);
+#else
+	molecules = Init::get_molecules(molecules_in_each_directions, initial_spin);
+#endif // DEBUG
+
+	
 	int num_lc = molecules.size();
 	molecules = Init::add_colloids(molecules, colloid_location);
 	BoundaryType bc = Init::get_boundary_condition();

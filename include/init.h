@@ -7,6 +7,10 @@
 #include <cstdlib>
 #include <ctime>
 #include <random>
+#include <fstream>
+#include <string>
+#include <sstream>
+#include <iterator>
 
 #include "./defined.h"
 #include "molecule.h"
@@ -31,6 +35,8 @@ class Init
 		static vector<double> get_init_spin();
 
 		static vector<Molecule> get_molecules(const vector<int> & molecules_in_each_directions, const vector<double> & initial_spin);
+
+		static vector<Molecule> get_molecules_from_file(const vector<int>& molecules_in_each_directions);
 
 		static BoundaryType get_boundary_condition();
 
