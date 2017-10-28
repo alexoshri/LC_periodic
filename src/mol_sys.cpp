@@ -288,7 +288,7 @@ void Mol_Sys::monte_carlo()
 				{
 					suggested_location = mol_chosen.m_location[j] + loc_dist(loc_gen);
 					suggested_location = mod(suggested_location + 0.5, m_sys_sizes[j]) - 0.5;
-				} while ((suggested_location + 0.5 < 0.0001) || (m_sys_sizes[j] - 0.5 - suggested_location < 0.0001));
+				} while ((suggested_location + 0.5 < 0.000001) || (m_sys_sizes[j] - 0.5 - suggested_location < 0.000001));
 				mol_chosen.m_location[j] = suggested_location;
 			}
 		}

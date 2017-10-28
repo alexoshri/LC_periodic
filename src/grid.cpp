@@ -112,6 +112,7 @@ Grid::Nbr Grid::getNbr(vector<double> location, bool shift) {
 							   grid_2D[mod(i,grid_size[0])][mod(j,grid_size[1])].end());
 				if (shift) {
 					res.nbr_vec.push_back(NULL); // NULL ptr separate between sequences of nbr with same shift
+					tmp_v.resize(0);
 					tmp_v.push_back(i - mod(i, grid_size[0]));
 					tmp_v.push_back(j - mod(j, grid_size[1]));
 					res.shift.push_back(tmp_v);
@@ -129,6 +130,7 @@ Grid::Nbr Grid::getNbr(vector<double> location, bool shift) {
 								   grid_3D[mod(i, grid_size[0])][mod(j, grid_size[1])][mod(k, grid_size[2])].end());
 					if (shift) {
 						res.nbr_vec.push_back(NULL); // NULL ptr separate between sequences of nbr with same shift
+						tmp_v.resize(0);
 						tmp_v.push_back(i - mod(i, grid_size[0]));
 						tmp_v.push_back(j - mod(j, grid_size[1]));
 						tmp_v.push_back(k - mod(k, grid_size[2]));

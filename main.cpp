@@ -20,8 +20,6 @@ int main(int argc, char* argv[])
 #else
 	molecules = Init::get_molecules(molecules_in_each_directions, initial_spin);
 #endif // DEBUG
-
-	
 	int num_lc = molecules.size();
 	molecules = Init::add_colloids(molecules, colloid_location);
 	BoundaryType bc = Init::get_boundary_condition();
